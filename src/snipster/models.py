@@ -2,10 +2,12 @@ from decouple import config
 from sqlmodel import Field, Session, SQLModel, create_engine, select
 
 
-class Item(SQLModel, table=True):
+class Snippet(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    name: str
-    price: float
+    title: str
+    code: str
+    description: str | None = None
+    favourite: bool = False
 
     @classmethod
     def alternate_constructor(cls, **kwargs):
@@ -28,7 +30,7 @@ def create_items(item):
 
 def select_items():
     with Session(engine) as session:
-        statement = select(Item)
+        statement = select(Snippet)
         results = session.exec(statement)
         for item in results:
             print(item)
