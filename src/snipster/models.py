@@ -1,6 +1,4 @@
-import os
-
-from dotenv import load_dotenv
+from decouple import config
 from sqlmodel import Field, Session, SQLModel, create_engine, select
 
 
@@ -14,8 +12,7 @@ class Item(SQLModel, table=True):
         return cls(**kwargs)
 
 
-load_dotenv()
-engine = create_engine(os.environ["DB_URL"], echo=False)
+engine = create_engine(config("DB_URL"), echo=False)
 
 
 def create_db_and_tables():
