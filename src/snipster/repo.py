@@ -52,7 +52,7 @@ class InMemorySnippetRepository(SnippetRepository):
 
     def update(self, snippet_id: int, updated_snippet: Snippet) -> None:
         self._data[snippet_id] = updated_snippet
-        return self._data
+        return self._data[snippet_id]
 
 
 class DatabaseSnippetRepository(SnippetRepository):
