@@ -28,6 +28,10 @@ class SnippetRepository(ABC):
     def update(self, snippet_id: int) -> None:
         pass
 
+    @abstractmethod
+    def favourite(self, snippet_id: int) -> None:
+        pass
+
 
 class InMemorySnippetRepository(SnippetRepository):
     def __init__(self) -> None:
@@ -53,6 +57,11 @@ class InMemorySnippetRepository(SnippetRepository):
     def update(self, snippet_id: int, updated_snippet: Snippet) -> None:
         self._data[snippet_id] = updated_snippet
         return self._data[snippet_id]
+
+    def favourite(self, snippet_id: int) -> None:
+        snippet = self._data.get(snippet_id)
+        snippet.favourite = not snippet.favourite
+        self.update(snippet_id, snippet)
 
 
 class DatabaseSnippetRepository(SnippetRepository):
@@ -106,3 +115,8 @@ class DatabaseSnippetRepository(SnippetRepository):
             session.refresh(snippet)
 
             return snippet
+
+    def favourite(self, snippet_id):
+        snippet = self.get(snippet_id)
+        snippet.favourite = not snippet.favourite
+        self.update(snippet_id, snippet)

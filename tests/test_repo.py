@@ -60,9 +60,19 @@ def test_update_snippet(add_in_memory_snippet, in_mem_repo):
     assert snippet.title == "Updated snippet"
 
 
+def test_favourite_snippet(add_in_memory_snippet, in_mem_repo):
+    snippet = in_mem_repo._data.get(1)
+    assert snippet.favourite
+    in_mem_repo.favourite(1)
+    snippet = in_mem_repo._data.get(1)
+    assert not snippet.favourite
+    in_mem_repo.favourite(1)
+    snippet = in_mem_repo._data.get(1)
+    assert snippet.favourite
+
+
 @pytest.fixture(scope="function")
 def engine():
-    # Create tables before each test
     engine = create_engine("sqlite:///:memory:", echo=True)
     SQLModel.metadata.create_all(engine)
     yield engine
@@ -100,13 +110,13 @@ def test_add_db_snippet(db_repo):
         assert result.description == "DB snippet test"
 
 
-def test_get_db_snippet(add_db_snippet, db_repo):
+def test_get_snippet_db(add_db_snippet, db_repo):
     result = db_repo.get(1)
     assert result is not None
     assert result.code == "ABC"
 
 
-def test_list_db_snippet(add_db_snippet, db_repo):
+def test_list_snippet_db(add_db_snippet, db_repo):
     result = db_repo.list()
     assert len(result) == 1
     assert result[0].title == "Testing 1st Snippet"
@@ -132,3 +142,14 @@ def test_update_snippet_db(add_db_snippet, db_repo):
         result = session.exec(select(Snippet).where(Snippet.id == snippet.id)).first()
         assert result.title == "Updated"
         assert result.code == "XYZ"
+
+
+def test_favourite_snippet_db(add_db_snippet, db_repo):
+    snippet = db_repo.get(1)
+    assert snippet.favourite
+    db_repo.favourite(1)
+    snippet = db_repo.get(1)
+    assert not snippet.favourite
+    db_repo.favourite(1)
+    snippet = db_repo.get(1)
+    assert snippet.favourite
