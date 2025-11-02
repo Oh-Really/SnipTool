@@ -1,13 +1,7 @@
 import pytest
-from sqlmodel import Session, SQLModel, create_engine, select
+from sqlmodel import Session, select
 
 from src.snipster.models import Snippet
-from src.snipster.repo import DatabaseSnippetRepository, InMemorySnippetRepository
-
-
-@pytest.fixture(scope="function")
-def in_mem_repo():
-    return InMemorySnippetRepository()
 
 
 @pytest.fixture(scope="function")
@@ -17,22 +11,11 @@ def add_in_memory_snippet(in_mem_repo):
     )
     in_mem_repo.add(snippet)
     return snippet
-
-
-# Should this not be return in_mem_repo?
+    # Should this not be return in_mem_repo?
 
 
 def test_add_snippet(add_in_memory_snippet, in_mem_repo):
     assert in_mem_repo._data[1].title == "Testing 1st Snippet"
-
-
-# def test_add_snippet():
-#     snippet = Snippet(
-#         title="Testing 1st Snippet", code="ABC", description="Test snippet 1"
-#     )
-#     repo = InMemorySnippetRepository()
-#     repo.add(snippet)
-#     assert repo._data[1].title == "Testing 1st Snippet"
 
 
 def test_get_snippet(add_in_memory_snippet, in_mem_repo):
@@ -42,7 +25,6 @@ def test_get_snippet(add_in_memory_snippet, in_mem_repo):
 
 def test_list_snippet(add_in_memory_snippet, in_mem_repo):
     snippet_list = in_mem_repo.list()
-    # assert snippet_list == list(add_snippet)
     assert len(snippet_list) == 1
 
 
@@ -62,27 +44,15 @@ def test_update_snippet(add_in_memory_snippet, in_mem_repo):
 
 def test_favourite_snippet(add_in_memory_snippet, in_mem_repo):
     snippet = in_mem_repo._data.get(1)
-    assert snippet.favourite
-    in_mem_repo.favourite(1)
-    snippet = in_mem_repo._data.get(1)
+    print(snippet.favourite)
     assert not snippet.favourite
     in_mem_repo.favourite(1)
     snippet = in_mem_repo._data.get(1)
     assert snippet.favourite
-
-
-@pytest.fixture(scope="function")
-def engine():
-    engine = create_engine("sqlite:///:memory:", echo=True)
-    SQLModel.metadata.create_all(engine)
-    yield engine
-    # Drop tables after each test to isolate data
-    SQLModel.metadata.drop_all(engine)
-
-
-@pytest.fixture(scope="function")
-def db_repo(engine):
-    return DatabaseSnippetRepository(engine)
+    in_mem_repo.favourite(1)
+    snippet = in_mem_repo._data.get(1)
+    assert not snippet.favourite
+    # Will this work if I create a snippet that is favourited by default??
 
 
 @pytest.fixture(scope="function")
@@ -146,10 +116,30 @@ def test_update_snippet_db(add_db_snippet, db_repo):
 
 def test_favourite_snippet_db(add_db_snippet, db_repo):
     snippet = db_repo.get(1)
-    assert snippet.favourite
-    db_repo.favourite(1)
-    snippet = db_repo.get(1)
     assert not snippet.favourite
     db_repo.favourite(1)
     snippet = db_repo.get(1)
     assert snippet.favourite
+    db_repo.favourite(1)
+    snippet = db_repo.get(1)
+    assert not snippet.favourite
+
+
+@pytest.mark.parametrize("repo_fixture", ["in_mem_repo", "db_repo"])
+def test_search_snippets(repo_fixture, request):
+    repo = request.getfixturevalue(repo_fixture)
+
+    s1 = Snippet(
+        title="Hello World", code="print('Hello')", description="A test snippet"
+    )
+    s2 = Snippet(title="Quick Sort", code="...", description="Algorithm")
+    s3 = Snippet(title="HELLO AGAIN", code="print('Again')", description="Greeting")
+
+    repo.add(s1)
+    repo.add(s2)
+    repo.add(s3)
+    results = repo.search("hello")
+
+    assert len(results) == 2
+    titles = [s.title for s in results]
+    assert "Hello World" in titles
