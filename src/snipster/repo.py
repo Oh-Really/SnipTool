@@ -4,7 +4,7 @@ from typing import Sequence
 from sqlmodel import Session, select
 
 from .exceptions import SnippetNotFoundError
-from .models import Snippet, engine
+from .models import Snippet  # , engine
 
 
 class SnippetRepository(ABC):
@@ -60,7 +60,7 @@ class DatabaseSnippetRepository(SnippetRepository):
         self.engine = engine
 
     def add(self, snippet: Snippet) -> None:
-        with Session(engine) as session:
+        with Session(self.engine) as session:
             session.add(snippet)
             session.commit()
             session.refresh(snippet)

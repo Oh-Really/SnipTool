@@ -1,7 +1,7 @@
 import pytest
-from sqlmodel import Session, SQLModel, select
+from sqlmodel import Session, SQLModel, create_engine, select
 
-from src.snipster.models import Snippet, engine
+from src.snipster.models import Snippet
 from src.snipster.repo import DatabaseSnippetRepository, InMemorySnippetRepository
 
 
@@ -61,16 +61,17 @@ def test_update_snippet(add_in_memory_snippet, in_mem_repo):
 
 
 @pytest.fixture(scope="function")
-def setup_db():
+def engine():
     # Create tables before each test
+    engine = create_engine("sqlite:///:memory:", echo=True)
     SQLModel.metadata.create_all(engine)
-    yield
+    yield engine
     # Drop tables after each test to isolate data
     SQLModel.metadata.drop_all(engine)
 
 
 @pytest.fixture(scope="function")
-def db_repo(setup_db):
+def db_repo(engine):
     return DatabaseSnippetRepository(engine)
 
 
@@ -83,7 +84,7 @@ def add_db_snippet(db_repo):
     return snippet  # Why do I need to return the snippet object?
 
 
-def test_db_add_snippet(db_repo):
+def test_add_db_snippet(db_repo):
     snippet = Snippet(
         title="Testing DB Snippet", code="XYZ", description="DB snippet test"
     )
