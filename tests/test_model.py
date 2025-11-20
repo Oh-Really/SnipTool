@@ -1,14 +1,13 @@
 import pytest
 from sqlmodel import SQLModel, create_engine
 
-from src.snipster.models import Snippet, create_items
+from snipster.models import Snippet, create_items
 
 engine = create_engine("sqlite:///:memory:", echo=True)
 
 
 @pytest.fixture(scope="module", autouse=True)
 def setup_database():
-    # create_db_and_tables()
     SQLModel.metadata.create_all(engine)
 
 

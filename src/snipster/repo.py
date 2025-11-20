@@ -1,10 +1,11 @@
 from abc import ABC, abstractmethod
 from typing import Sequence
 
+from sqlalchemy import func
 from sqlmodel import Session, select
 
 from .exceptions import SnippetNotFoundError
-from .models import Snippet  # , engine
+from .models import Snippet
 
 
 class SnippetRepository(ABC):
@@ -26,6 +27,14 @@ class SnippetRepository(ABC):
 
     @abstractmethod
     def update(self, snippet_id: int) -> None:
+        pass
+
+    @abstractmethod
+    def favourite(self, snippet_id: int) -> None:
+        pass
+
+    @abstractmethod
+    def search(self, search_string: str) -> None:
         pass
 
 
@@ -53,6 +62,19 @@ class InMemorySnippetRepository(SnippetRepository):
     def update(self, snippet_id: int, updated_snippet: Snippet) -> None:
         self._data[snippet_id] = updated_snippet
         return self._data[snippet_id]
+
+    def favourite(self, snippet_id: int) -> None:
+        snippet = self._data.get(snippet_id)
+        snippet.favourite = not snippet.favourite
+        self.update(snippet_id, snippet)
+
+    def search(self, search_string: str) -> Sequence[Snippet]:
+        search_string = search_string.lower()
+        return [
+            snippet
+            for snippet in self._data.values()
+            if search_string in snippet.title.lower()
+        ]
 
 
 class DatabaseSnippetRepository(SnippetRepository):
@@ -104,5 +126,17 @@ class DatabaseSnippetRepository(SnippetRepository):
             session.add(snippet)
             session.commit()
             session.refresh(snippet)
-
             return snippet
+
+    def favourite(self, snippet_id):
+        snippet = self.get(snippet_id)
+        snippet.favourite = not snippet.favourite
+        self.update(snippet_id, snippet)
+
+    def search(self, search_string: str) -> Sequence[Snippet]:
+        with Session(self.engine) as session:
+            statement = select(Snippet).where(
+                func.lower(Snippet.title).contains(search_string.lower())
+            )
+            results = session.exec(statement).all()
+            return results
