@@ -1,7 +1,7 @@
 import pytest
 from sqlmodel import SQLModel, create_engine
 
-from src.snipster.repo import DatabaseSnippetRepository, InMemorySnippetRepository
+from snipster.repo import DatabaseSnippetRepository, InMemorySnippetRepository
 
 
 @pytest.fixture(scope="function")

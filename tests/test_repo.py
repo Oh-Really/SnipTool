@@ -1,7 +1,7 @@
 import pytest
 from sqlmodel import Session, select
 
-from src.snipster.models import Snippet
+from snipster.models import Snippet
 
 
 @pytest.fixture(scope="function")
