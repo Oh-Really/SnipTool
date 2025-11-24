@@ -13,12 +13,14 @@ dependencies = [
     "psycopg2>=2.9.11",
     "python-decouple>=3.8",
     "sqlmodel>=0.0.27",
+    "streamlit>=1.51.0",
     "typer>=0.20.0",
 ]
 
 [project.scripts]
 #snipster = "snipster:main"
 snipster = "snipster.cli:app"
+snipster-api = "snipster.api:app"
 
 [build-system]
 requires = ["uv_build>=0.9.2,<0.10.0"]
