@@ -1,7 +1,7 @@
 [project]
 name = "snipster"
 version = "0.1.0"
-description = "Add your description here"
+description = "CLI tool for managing code snippets"
 readme = "README.md"
 authors = [
     { name = "Oh-Really", email = "moreilly406@gmail.com" }
