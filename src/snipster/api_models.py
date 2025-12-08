@@ -16,8 +16,8 @@ class SnippetRead(SnippetBase):
     id: int
 
 
-class SnippetUpdate(SnippetBase):
-    title: str
-    code: str
-    description: str | None
-    favourite: bool
+class SnippetUpdate(SQLModel):
+    title: str | None = None
+    code: str | None = None
+    description: str | None = None
+    favourite: bool | None = None

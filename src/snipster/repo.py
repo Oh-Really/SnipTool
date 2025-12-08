@@ -59,9 +59,15 @@ class InMemorySnippetRepository(SnippetRepository):
         self._data.pop(snippet_id)
         return self._data
 
-    def update(self, snippet_id: int, updated_snippet: Snippet) -> None:
-        self._data[snippet_id] = updated_snippet
-        return self._data[snippet_id]
+    def update(self, snippet_id: int, updated_data: dict) -> None:
+        snippet = self._data[snippet_id]
+        if not snippet:
+            raise SnippetNotFoundError(snippet_id)
+
+        for field, value in updated_data.items():
+            setattr(snippet, field, value)
+
+        return snippet
 
     def favourite(self, snippet_id: int) -> None:
         snippet = self._data.get(snippet_id)
@@ -110,18 +116,22 @@ class DatabaseSnippetRepository(SnippetRepository):
             session.delete(snip_to_delete)
             session.commit()
 
-    def update(self, snippet_id: int, updated_snippet: Snippet) -> None:
+    def update(self, snippet_id: int, updated_data: dict) -> None:
         with Session(self.engine) as session:
-            statement = select(Snippet).where(Snippet.id == snippet_id)
-            snippet = session.exec(statement).first()
+            snippet = session.get(Snippet, snippet_id)
+            # statement = select(Snippet).where(Snippet.id == snippet_id)
+            # snippet = session.exec(statement).first()
 
             if snippet is None:
                 raise SnippetNotFoundError(f"Snippet with id {snippet_id} not found")
 
-            snippet.title = updated_snippet.title
-            snippet.code = updated_snippet.code
-            snippet.description = updated_snippet.description
-            snippet.favourite = updated_snippet.favourite
+            for field, value in updated_data.items():
+                setattr(snippet, field, value)
+
+            # snippet.title = updated_snippet.title
+            # snippet.code = updated_snippet.code
+            # snippet.description = updated_snippet.description
+            # snippet.favourite = updated_snippet.favourite
 
             session.add(snippet)
             session.commit()

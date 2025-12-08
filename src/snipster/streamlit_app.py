@@ -8,7 +8,7 @@ API_URL = "http://localhost:8000"
 
 
 def api_list_snippets():
-    response = requests.get(f"{API_URL}/snippets")
+    response = requests.get(f"{API_URL}/snippets/")
     return response.json()
 
 
@@ -23,7 +23,7 @@ def api_add_snippet(title: str, code: str, description: str | None):
         "code": code,
         "description": description,
     }
-    resp = requests.post(f"{API_URL}/snippets", json=payload)
+    resp = requests.post(f"{API_URL}/snippets/", json=payload)
     resp.raise_for_status()
     return resp.json()
 
