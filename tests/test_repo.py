@@ -36,15 +36,13 @@ def test_delete(add_in_memory_snippet, in_mem_repo):
 def test_update_snippet(add_in_memory_snippet, in_mem_repo):
     snippet = in_mem_repo._data.get(1)
     assert snippet.title == "Testing 1st Snippet"
-    updated_snippet = snippet.model_copy()
-    updated_snippet.title = "Updated snippet"
-    snippet = in_mem_repo.update(snippet.id, updated_snippet)
-    assert snippet.title == "Updated snippet"
+    updated_data = {"title": "Updated snippet"}
+    updated_snippet = in_mem_repo.update(snippet.id, updated_data)
+    assert updated_snippet.title == "Updated snippet"
 
 
 def test_favourite_snippet(add_in_memory_snippet, in_mem_repo):
     snippet = in_mem_repo._data.get(1)
-    print(snippet.favourite)
     assert not snippet.favourite
     in_mem_repo.favourite(1)
     snippet = in_mem_repo._data.get(1)
@@ -105,8 +103,8 @@ def test_delete_snippet_db(add_db_snippet, db_repo):
 def test_update_snippet_db(add_db_snippet, db_repo):
     repo = db_repo
     snippet = repo.list()[0]
-    updated = Snippet(title="Updated", code="XYZ", description="Updated desc")
-    repo.update(snippet.id, updated)
+    updated_values = {"title": "Updated", "code": "XYZ", "description": "Updated desc"}
+    repo.update(snippet.id, updated_values)
 
     with Session(repo.engine) as session:
         result = session.exec(select(Snippet).where(Snippet.id == snippet.id)).first()
