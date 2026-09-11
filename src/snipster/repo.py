@@ -44,6 +44,7 @@ class InMemorySnippetRepository(SnippetRepository):
 
     def add(self, snippet: Snippet) -> None:
         next_id = max(self._data.keys(), default=0) + 1
+        snippet.id = next_id
         self._data[next_id] = snippet
         # return self._data
 
@@ -59,14 +60,21 @@ class InMemorySnippetRepository(SnippetRepository):
         self._data.pop(snippet_id)
         return self._data
 
-    def update(self, snippet_id: int, updated_snippet: Snippet) -> None:
-        self._data[snippet_id] = updated_snippet
-        return self._data[snippet_id]
+    def update(self, snippet_id: int, updated_data: dict) -> None:
+        snippet = self._data[snippet_id]
+        if not snippet:
+            raise SnippetNotFoundError(snippet_id)
+
+        for field, value in updated_data.items():
+            setattr(snippet, field, value)
+
+        return snippet
 
     def favourite(self, snippet_id: int) -> None:
         snippet = self._data.get(snippet_id)
-        snippet.favourite = not snippet.favourite
-        self.update(snippet_id, snippet)
+        new_favourite_value = not snippet.favourite
+        snippet.favourite = new_favourite_value
+        self.update(snippet_id, {"favourite": new_favourite_value})
 
     def search(self, search_string: str) -> Sequence[Snippet]:
         search_string = search_string.lower()
@@ -110,18 +118,15 @@ class DatabaseSnippetRepository(SnippetRepository):
             session.delete(snip_to_delete)
             session.commit()
 
-    def update(self, snippet_id: int, updated_snippet: Snippet) -> None:
+    def update(self, snippet_id: int, updated_data: dict) -> None:
         with Session(self.engine) as session:
-            statement = select(Snippet).where(Snippet.id == snippet_id)
-            snippet = session.exec(statement).first()
+            snippet = session.get(Snippet, snippet_id)
 
             if snippet is None:
                 raise SnippetNotFoundError(f"Snippet with id {snippet_id} not found")
 
-            snippet.title = updated_snippet.title
-            snippet.code = updated_snippet.code
-            snippet.description = updated_snippet.description
-            snippet.favourite = updated_snippet.favourite
+            for field, value in updated_data.items():
+                setattr(snippet, field, value)
 
             session.add(snippet)
             session.commit()
@@ -130,8 +135,9 @@ class DatabaseSnippetRepository(SnippetRepository):
 
     def favourite(self, snippet_id):
         snippet = self.get(snippet_id)
+        new_fav_value = not snippet.favourite
         snippet.favourite = not snippet.favourite
-        self.update(snippet_id, snippet)
+        self.update(snippet_id, {"favourite": new_fav_value})
 
     def search(self, search_string: str) -> Sequence[Snippet]:
         with Session(self.engine) as session:

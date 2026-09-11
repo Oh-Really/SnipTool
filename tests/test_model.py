@@ -1,7 +1,7 @@
 import pytest
-from sqlmodel import SQLModel, create_engine
+from sqlmodel import Session, SQLModel, create_engine
 
-from snipster.models import Snippet, create_items
+from snipster.models import Snippet
 
 engine = create_engine("sqlite:///:memory:", echo=True)
 
@@ -13,7 +13,10 @@ def setup_database():
 
 def test_create_items():
     snippet = Snippet(title="Hello World", code="Print('Hello World!')")
-    create_items(snippet)
+    with Session(engine) as session:
+        session.add(snippet)
+        session.commit()
+        session.refresh(snippet)
 
     assert snippet.title == "Hello World"
     assert snippet.code == "Print('Hello World!')"
@@ -24,5 +27,8 @@ def test_alternate_constructor():
 
     snippet_class_method = Snippet.alternate_constructor(**params)
 
-    create_items(snippet_class_method)
+    with Session(engine) as session:
+        session.add(snippet_class_method)
+        session.commit()
+        session.refresh(snippet_class_method)
     assert snippet_class_method.title == "AlternateConstructor"
