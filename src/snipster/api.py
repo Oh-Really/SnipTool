@@ -1,5 +1,6 @@
 from decouple import config
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Query
+from sqlmodel import SQLModel
 
 from snipster.api_models import SnippetCreate, SnippetRead, SnippetUpdate
 from snipster.db import get_engine
@@ -10,12 +11,12 @@ from snipster.repo import DatabaseSnippetRepository
 app = FastAPI()
 
 DB_URL = config("DB_URL")
-# _engine = None
 
 
 def get_repo():
-    _engine = get_engine(DB_URL)
-    return DatabaseSnippetRepository(_engine)
+    engine = get_engine(DB_URL)
+    SQLModel.metadata.create_all(engine)
+    return DatabaseSnippetRepository(engine)
 
 
 @app.post("/snippets/", response_model=SnippetRead)
@@ -59,3 +60,19 @@ def update_snippet(snippet_id: int, snippet: SnippetUpdate, repo=Depends(get_rep
 
     updated_snippet = repo.update(snippet_id, updated_data)
     return updated_snippet
+
+
+@app.get("/snippets/search", response_model=list[SnippetRead])
+def search_snippets(
+    search_string: str = Query(..., min_length=1), repo=Depends(get_repo)
+):
+    return repo.search(search_string)
+
+
+@app.post("/snippets/{snippet_id}/favourite", response_model=SnippetRead)
+def toggle_favourite(snippet_id: int, repo=Depends(get_repo)):
+    try:
+        repo.favourite(snippet_id)
+    except SnippetNotFoundError:
+        raise HTTPException(status_code=404, detail="Snippet not found")
+    return repo.get(snippet_id)
