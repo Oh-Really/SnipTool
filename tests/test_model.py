@@ -12,18 +12,18 @@ def setup_database():
 
 
 def test_create_items():
-    snippet = Snippet(title="Hello World", code="Print('Hello World!')")
+    snippet = Snippet(title="Hello World", code="print('Hello World!')")
     with Session(engine) as session:
         session.add(snippet)
         session.commit()
         session.refresh(snippet)
 
     assert snippet.title == "Hello World"
-    assert snippet.code == "Print('Hello World!')"
+    assert snippet.code == "print('Hello World!')"
 
 
 def test_alternate_constructor():
-    params = {"title": "AlternateConstructor", "code": "Print('Alternate constructor')"}
+    params = {"title": "AlternateConstructor", "code": "print('Alternate constructor')"}
 
     snippet_class_method = Snippet.alternate_constructor(**params)
 
