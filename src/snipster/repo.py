@@ -72,6 +72,8 @@ class InMemorySnippetRepository(SnippetRepository):
 
     def favourite(self, snippet_id: int) -> None:
         snippet = self._data.get(snippet_id)
+        if snippet is None:
+            raise SnippetNotFoundError(f"Snippet with id {snippet_id} not found")
         new_favourite_value = not snippet.favourite
         snippet.favourite = new_favourite_value
         self.update(snippet_id, {"favourite": new_favourite_value})
@@ -135,6 +137,8 @@ class DatabaseSnippetRepository(SnippetRepository):
 
     def favourite(self, snippet_id):
         snippet = self.get(snippet_id)
+        if snippet is None:
+            raise SnippetNotFoundError(f"Snippet with id {snippet_id} not found")
         new_fav_value = not snippet.favourite
         snippet.favourite = not snippet.favourite
         self.update(snippet_id, {"favourite": new_fav_value})

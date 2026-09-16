@@ -31,6 +31,13 @@ def list_snippets(repo=Depends(get_repo)):
     return repo.list()
 
 
+@app.get("/snippets/search", response_model=list[SnippetRead])
+def search_snippets(
+    search_string: str = Query(..., min_length=1), repo=Depends(get_repo)
+):
+    return repo.search(search_string)
+
+
 @app.get("/snippets/{snippet_id}", response_model=SnippetRead)
 def get_snippet(snippet_id: int, repo=Depends(get_repo)):
     snippet = repo.get(snippet_id)
@@ -60,13 +67,6 @@ def update_snippet(snippet_id: int, snippet: SnippetUpdate, repo=Depends(get_rep
 
     updated_snippet = repo.update(snippet_id, updated_data)
     return updated_snippet
-
-
-@app.get("/snippets/search", response_model=list[SnippetRead])
-def search_snippets(
-    search_string: str = Query(..., min_length=1), repo=Depends(get_repo)
-):
-    return repo.search(search_string)
 
 
 @app.post("/snippets/{snippet_id}/favourite", response_model=SnippetRead)
