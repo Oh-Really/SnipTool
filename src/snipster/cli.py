@@ -137,3 +137,38 @@ def favourite(ctx: typer.Context, snippet_id: int):
 
     repo.favourite(snippet_id)
     console.print(f"⭐ Snippet #{snippet_id} marked as favourite!")
+
+
+@app.command()
+def update(
+    ctx: typer.Context,
+    snippet_id: int,
+    title: str = typer.Option(None, help="New title"),
+    code: str = typer.Option(None, help="New code"),
+    description: str = typer.Option(None, help="New description"),
+):
+    repo = ctx.obj
+    snippet = repo.get(snippet_id)
+
+    if not snippet:
+        console.print(f"No snippet with id {snippet_id}")
+        raise typer.Exit()
+
+    updated_data = {
+        field: value
+        for field, value in {
+            "title": title,
+            "code": code,
+            "description": description,
+        }.items()
+        if value is not None
+    }
+
+    if not updated_data:
+        console.print(
+            "Nothing to update — pass at least one of --title, --code, --description."
+        )
+        raise typer.Exit()
+
+    repo.update(snippet_id, updated_data)
+    console.print(f"[bold green]Updated snippet #{snippet_id}[/bold green]")

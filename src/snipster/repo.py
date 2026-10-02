@@ -26,7 +26,7 @@ class SnippetRepository(ABC):
         pass
 
     @abstractmethod
-    def update(self, snippet_id: int) -> None:
+    def update(self, snippet_id: int, updated_data: dict) -> Snippet:
         pass
 
     @abstractmethod
@@ -34,7 +34,7 @@ class SnippetRepository(ABC):
         pass
 
     @abstractmethod
-    def search(self, search_string: str) -> None:
+    def search(self, search_string: str) -> Sequence[Snippet]:
         pass
 
 
@@ -61,10 +61,10 @@ class InMemorySnippetRepository(SnippetRepository):
         return self._data
 
     def update(self, snippet_id: int, updated_data: dict) -> None:
-        snippet = self._data[snippet_id]
-        if not snippet:
-            raise SnippetNotFoundError(snippet_id)
+        if snippet_id not in self._data:
+            raise SnippetNotFoundError(f"Snippet with id {snippet_id} not found")
 
+        snippet = self._data[snippet_id]
         for field, value in updated_data.items():
             setattr(snippet, field, value)
 

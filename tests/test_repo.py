@@ -11,7 +11,6 @@ def add_in_memory_snippet(in_mem_repo):
     )
     in_mem_repo.add(snippet)
     return snippet
-    # Should this not be return in_mem_repo?
 
 
 def test_add_snippet(add_in_memory_snippet, in_mem_repo):
@@ -50,7 +49,6 @@ def test_favourite_snippet(add_in_memory_snippet, in_mem_repo):
     in_mem_repo.favourite(1)
     snippet = in_mem_repo._data.get(1)
     assert not snippet.favourite
-    # Will this work if I create a snippet that is favourited by default??
 
 
 @pytest.fixture(scope="function")
@@ -59,7 +57,7 @@ def add_db_snippet(db_repo):
         title="Testing 1st Snippet", code="ABC", description="Test snippet 1"
     )
     db_repo.add(snippet)
-    return snippet  # Why do I need to return the snippet object?
+    return snippet
 
 
 def test_add_db_snippet(db_repo):
